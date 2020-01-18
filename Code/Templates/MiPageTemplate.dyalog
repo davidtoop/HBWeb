@@ -16,7 +16,7 @@
      
    ⍝ add the header to the top of the page
       header←'#banner'Insert _.header
-      home←header.Add _.A'[insert the name of your site here]' '/' ⍝ click to go home
+      home←header.Add _.A'Heatherbank' '/' ⍝ click to go home
       'src="/Styles/Images/duck.png"'home.Insert _.img ⍝ logo
       menu←'#menu'header.Add _.nav
       {menu.Add _.A ⍵('/',⍵)}¨'Products' 'Support' 'Corporate'
