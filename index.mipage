@@ -1,7 +1,22 @@
 ﻿:Class index : MiPageTemplate
- ∇ Compose
-   :Access public
-   Add _.h3'Hello World!'
-   Add _.p'[insert content here]'
- ∇
+
+
+    ∇ Compose;main;mul;menu;wrapper
+      :Access public
+      wrapper←'.wrapper'Body.Push _.div
+      menu←'.main-nav'wrapper.Add _.nav
+      mul←menu.Add _.ul
+      (mul.Add _.li).Add _.a'Home' 'href="/"'
+      (mul.Add _.li).Add _.a'Lounge' 'href="#"'
+      (mul.Add _.li).Add _.a'Bedroom' 'href="#"'
+      (mul.Add _.li).Add _.a'Sensors' 'href="#"'
+      (mul.Add _.li).Add _.a'Logs' 'href="#"'
+     
+     
+     
+     
+     
+      main←'.main-body'Body.Add _.section
+      #.page_index main
+    ∇
 :EndClass

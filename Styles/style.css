@@ -1,51 +1,74 @@
-body
-{
-    margin: 0;
-    overflow: auto;
+/* CSS VARIABLES */
+:root {
+    --primary: #ddd;
+    --dark: #333;
+    --light: #fff;
+    --shadow: 0 1px 5px rgba(104,104,104,0.8);
 }
 
-#contentblock
-{
-    padding: 0 1em;
-    height: calc(100vh - 75px);
-    margin-top: 75px;
-    overflow: auto;
+html {
+    box-sizing: border-box;
+    font-family: Arial, Helvetica, sans-serif;
+    color: var(--dark);
 }
 
-#banner /* Floating banner */
-{
-    position: fixed;
-    top: 0;
-    width: 100%;
-    background: ButtonFace;
-    font-size: xx-large;
-    height: 75px;
+body {
+    background: #ccc;
+    margin: 30px 50px;
+    line-height: 1.4;
 }
 
-#banner a /* Remove underlines from banner links*/
-{
-    color: Black;
+.btn {
+    background: var(--dark);
+    color: var(--light);
+    padding: 0.6rem 1.3rem;
     text-decoration: none;
+    border: 0;
 }
 
-#banner img
-{
-    vertical-align: middle;
-    height: 1.5em;
-    margin: 0.5em;
-    background: white;
+img {
+    max-width: 100%;
+} 
+
+.wrapper {
+    display: grid;
+    grid-gap: 20px;;
 }
 
-#menu
-{
-    float: right;
-    font-size: large;
-    padding: 1.5em;
+.main-nav ul {
+    display: grid;
+    grid-gap: 20px;
+    padding: 0;
+    list-style: none;
+    grid-template-columns: repeat(5, 1fr);
 }
 
-#menu a
-{
-    padding: 0.25em;
-    margin: 0.25em;
+.main-nav a {
+    background: var(--primary);
+    display: block;
+    text-decoration: none;
+    padding: 0.8rem;
+    text-align: center;
+    color: var(--dark);
+    text-transform: uppercase;
+    font-size: 1.1rem;
+    box-shadow: var(--shadow);
+}
+
+.main-nav a:hover {
+    background: var(--dark);
+    color: var(--light);
+}
+
+.main-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    grid-gap: 10px;
+    grid-auto-rows: minmax(100px, auto);
+}
+
+.r1c4-1-1 {
+    grid-column: 4 / 1;
+    grid-row: 1; 
 }
 

@@ -1,0 +1,7 @@
+﻿:Class logger : MiPageTemplate
+    ∇ Compose
+      :Access public
+      #.Record←Get¨'M' 'T' 'D'
+      #.DB.Put #.Record 
+    ∇
+:EndClass
