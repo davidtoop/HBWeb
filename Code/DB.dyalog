@@ -1,8 +1,9 @@
 ﻿:Namespace DB
 
     _filetie←0
-    AllTimeKeys←100 100⊥(6/0,⍳23),[.5](6×24)⍴0 10 20 30 40 50
-
+    ⍝AllTimeKeys←100 100⊥(6/0,⍳23),[.5](6×24)⍴0 10 20 30 40 50
+    TimeKeys←{,(100×0,⍳23)∘.+⍵×0,⍳¯1+60÷⍵}
+    AllTimeKeys←TimeKeys 10
     ∇ r←FileTie;ix
       :If _filetie=0
           ix←(↓⎕FNAMES)⍳⊂FileName
@@ -21,20 +22,18 @@
       r,←'1       2-8     9-15  16  17   18      19      20         21         22          '
     ∇
 
-
     ∇ fn←FileName
       fn←1⊃⎕NPARTS ⎕WSID
       fn,←'Databases'
       fn,←'/sensors'
-     
     ∇
 
     ∇ tn←Open;fn
       fn←FileName
       :If 0=⎕NEXISTS fn,'.dcf'
-          FileTie←New fn
+          tn←New fn
       :Else
-          FileTie←fn ⎕FSTIE 0
+          tn←fn ⎕FSTIE 0
       :EndIf
     ∇
 
@@ -68,12 +67,19 @@
       :Else
           r←⎕FREAD FileTie,dir[ix;2]
       :EndIf
-     
     ∇
 
-
-
-
+    ⍝Get a whole month of data
+    ∇ r←m GetMonth ts;dir;tn
+      dir←GetDir m
+      dir←((2↑ts)∧.=(10000 100 100⊤dir[;1])[1 2;])⌿dir
+      :If 0≠≢dir
+          tn←FileTie ⋄ r←⎕FREAD¨tn,¨dir[;2]
+          r←dir[;1]r
+      :Else
+          r←⍬(0 0⍴0)
+      :EndIf
+    ∇
 
     ∇ Put record;timekey;datadir;mix;measures;tablekey;datekey;timestamp;measure;d;kt;dir;tabs;tix;dix;data
       measure←⊃record
@@ -81,7 +87,7 @@
       datekey←DateKeyFromTS timestamp
       timekey←TimeKeyFromTS timestamp
         ⍝
-      data←timekey,↑⊃2↓record
+      data←{(¯2↑1,⍴⍵)⍴⍵}timekey,↑⊃2↓record ⍝ensure that it is a matrix
 ⍝      :Hold #.⍙FileTie
 ⍝          ⎕FHOLD FileTie
       measures←⎕FREAD FileTie 2
@@ -93,9 +99,10 @@
       datadir←⎕FREAD FileTie,measures[mix;2]
       dix←datadir[;1]⍳datekey
       :If dix>≢datadir
-          datadir⍪←(datekey)(((0,1↓⍴data)⍴0)⎕FAPPEND FileTie)
+          datadir⍪←(datekey)(((0,measures[mix;3])⍴0)⎕FAPPEND FileTie)
           datadir ⎕FREPLACE FileTie,measures[mix;2]
       :EndIf
+      data←((1↑⍴data),measures[mix;3])↑data ⍝Conform width
       data←(⎕FREAD FileTie(datadir[dix;2]))⍪data
       data ⎕FREPLACE FileTie(datadir[dix;2])
       ⎕FUNTIE ⍬
