@@ -9,6 +9,11 @@
       sp.SetHeadingFont'AS' 20 System.Drawing.FontStyle.Bold ##.Theme.dark
     ∇
 
+    ∇ sp←formattemp sp
+        sp.YIntercept←0
+        sp.MissingValue←¯1000
+        sp.SetYRange ¯20 50
+    ∇
     ∇ svg←solarmonthly ts;Causeway;System;data;daydata;dy;md;sp;x;y;⎕USING
       ⍝Plot the month - given by the  second element of ts
       (dy data)←'SOLAR'#.DB.GetMonth ts
@@ -97,12 +102,11 @@
      
       ##.InitCauseway ⍬
       sp←⎕NEW Causeway.SharpPlot
-      sp.Heading←'Outdoor Temperatures ',(ts[2]⊃##.T.FullMonthNames),' ',,⍕ts[1]
-      sp←formatchart sp
-      sp.YCaption←'Temp'
+      sp.Heading←'Outdoor Temperatues ',(ts[2]⊃##.T.ShortMonthNames),' ',,⍕ts[1]
+      sp←formattemp formatchart sp
+      sp.YCaption←'Temp °C'
       sp.XCaption←'Date'
       sp.SetXLabels x
-      sp.SetYRange ¯20 50
       sp.LineGraphStyle←Causeway.LineGraphStyles.(Markers+HaloMarkers+GridLines)
       sp.MissingValue←¯1000
 
@@ -122,7 +126,7 @@
       daiy←'OUTTEMP'##.DB.GetDay ts
       prev←'OUTTEMP'##.DB.GetDay ##.date(##.days ⎕TS)-1
       avgt←{⍵[;,1],.01×⌊.5+10×÷/⍵[;3 2]}
-      algn←{0⌈(⍵[;2],0)[⍵[;1]⍳⍺]}
+      algn←{(⍵[;2],¯1000)[⍵[;1]⍳⍺]}
       ckey←{z←{⍵+{(15≠⍵)×⍵}15-15|⍵}(x←100 100⊤⍵)[2;] ⋄ z[(z=60)/⍳⍴z]←100 ⋄ z+100×x[1;]}
       daiy[;1]←ckey daiy[;1] ⋄ prev[;1]←ckey prev[;1]
       tk←##.DB.TimeKeys 15
@@ -147,11 +151,10 @@
       ##.InitCauseway ⍬  ⍝ Initialise the Causeway and System namespace in this scope (notice we have localised them, along with ⎕USING)
       sp←⎕NEW Causeway.SharpPlot  ⍝ ColdStart
 ⍝     
-      sp←formatchart sp
-      sp.Heading←'Temperature ',(##.T.ISODate ts)
-      sp.YCaption←'Temp '
+      sp←formattemp formatchart sp
+      sp.Heading←'Outdoor Temperature ',(##.T.ISODate ts)
+      sp.YCaption←'Temp °C'
       sp.XCaption←'Time'
-      sp.MissingValue←0    
       mask←{(∨\⍵)∧⌽∨\⌽⍵}(0≠ty)∨0≠td
       td←mask/td
       ty←mask/ty
@@ -159,7 +162,6 @@
       sp.SetXLabels x
      
       sp.SetPenWidths⊂1.3 1.3
-      sp.SetYRange 0,(⌈/td,ty)
       sp.DrawLineGraph td
       sp.DrawLineGraph ty
       svg←sp.RenderSvg Causeway.SvgMode.FitWidth 96 Causeway.PageMode.Vertical
