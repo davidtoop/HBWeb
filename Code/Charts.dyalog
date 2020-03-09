@@ -7,13 +7,104 @@
       sp.SetBackground ##.Theme.primary Causeway.FillStyle.GradientBottom
       sp.DefineFont'AS' 'Verdana,Aria,Sans'
       sp.SetHeadingFont'AS' 20 System.Drawing.FontStyle.Bold ##.Theme.dark
+      sp.SetLabelFont 'AS' 10 System.Drawing.FontStyle.Regular ##.Theme.dark
     ∇
-
     ∇ sp←formattemp sp
         sp.YIntercept←0
         sp.MissingValue←¯1000
         sp.SetYRange ¯20 50
     ∇
+
+    ∇ sp←formatpower sp
+        ⍝sp.DataStyle←Causeway.DataStyles.Relative
+        sp.YCaption←'Wh'
+        sp.XCaption←'Time'
+        sp.SetPenWidths⊂0.3 0.3 4
+        sp.SetLineStyles⊂Causeway.LineStyle.(Solid Solid Solid)
+        sp.SetColors ⊂System.Drawing.Color.(Blue Red Green)
+        sp.XAxisStyle←Causeway.XAxisStyles.Time
+    ∇
+
+
+    Economy7Times←{
+        d←##.T.days 3↑⍵
+        ls←{(##.T.days ⍵)-(7≠wd)×wd←##.T.WeekDay ⍵}
+        (sd ed)←ls¨ (1↑⍵),¨(3 31) (9 30)
+        (d≥sd)∧(d<ed):##.T.days ↑(⊂3↑⍵),¨(2 30 0 0) (9 30 0 0)
+        ##.T.days ↑(⊂3↑⍵),¨(1 30 0 0)(8 30 0 0)
+    }
+
+    XAxisTimes←{⍺←⎕TS ⋄ ¯1+#.days(3↑⍺)(,⍤1)⍉100 100⊤⍵}
+
+    NADailyMessage←{
+      ⍺←''
+      r←'NO DATA AVAILABLE ',(0≠⍴⍺)/'FOR ',⍺,' '
+      r,←'ON ',(##.T.ISODate ⍵)
+      r
+    }
+
+    NAMonthlyMessage←{
+        ⍺←''
+        r←'NO DATA AVAILABLE ',(0≠≢⍺)/'FOR ',⍺,' '
+        r,←'ON ',(##.T.FullMonthNames[⍵[2]]),' ',⍕⍵[1]
+        r
+    }
+
+    ∇ svg←powerdaily ts;Causeway;System;dat;pwr;sp;tk;x;y1;y2;y3
+        pwr←'POWER' #.DB.GetDay ts
+        :if 0∊⍴pwr
+            svg←'POWER' NADailyMessage ts
+            →0
+        :endif
+        dat←#.Consolidations.Power.ToPower pwr
+        tk←##.DB.TimeKeys 15
+        dat←0⌈(dat⍪0)[pwr[;1]⍳tk;]
+        xx←x←ts XAxisTimes tk
+        y1←dat[;1]
+        y2←dat[;3]
+        y3←dat[;2]
+        ⍝#.yy←y1←⊂↓[1](dat[;,1]-dat[;,3]),dat[;,3]
+        ##.InitCauseway ⍬
+        sp←⎕NEW Causeway.SharpPlot
+        sp.Heading←'Power Consumption ',##.T.ISODate ts
+        sp←formatpower formatchart sp
+        sp.SetXDatumLines ⊂¯1+Economy7Times ts
+        sp.SetDatumLineStyle (System.Drawing.Color.Black) (System.Drawing.LineStyle.Solid) (1)
+        sp.SetKeyText ⊂'Total' 'Car' 'Solar'
+        sp.LineGraphStyle←Causeway.LineGraphStyles.SurfaceShading
+        sp.DrawLineGraph y1 x
+        sp.DrawLineGraph y2 x
+        sp.LineGraphStyle←Causeway.LineGraphStyles.XYPlot
+        sp.DrawLineGraph y3 x
+        svg←sp.RenderSvg Causeway.SvgMode.FitWidth 96 Causeway.PageMode.Vertical
+    ∇
+    ∇ svg←powermonthly ts;Causeway;System;dat;dy;pwr;sp;tk;x;y1;y2;y3
+        (dy pwr)←'POWER' #.DB.Month ts
+        :if 0∊⍴pwr
+            svg←'POWER' NADailyMessage ts
+            →0
+        :endif
+    ⍝   dat←#.Consolidations.Power.ToPower ¨pwr
+    ⍝     tk←##.DB.TimeKeys 15
+    ⍝     dat←0⌈(dat⍪0)[pwr[;1]⍳tk;]
+    ⍝     x←ts XAxisTimes tk
+    ⍝     y1←dat[;1]
+    ⍝     y2←dat[;3]
+    ⍝     y3←dat[;2]
+    ⍝     ⍝#.yy←y1←⊂↓[1](dat[;,1]-dat[;,3]),dat[;,3]
+    ⍝     ##.InitCauseway ⍬
+    ⍝     sp←⎕NEW Causeway.SharpPlot
+    ⍝     sp.Heading←'Power Consumption ',##.T.ISODate ts
+    ⍝     sp←formatpower formatchart sp
+    ⍝     ⍝sp.SetXLabels tk
+    ⍝     sp.SetKeyText ⊂'Total' 'Car' 'Solar'
+    ⍝     sp.LineGraphStyle←Causeway.LineGraphStyles.SurfaceShading
+    ⍝     sp.DrawLineGraph y1 x
+    ⍝     sp.DrawLineGraph y2 x
+    ⍝     sp.LineGraphStyle←Causeway.LineGraphStyles.XYPlot
+    ⍝     sp.DrawLineGraph y3 x
+    ⍝     svg←sp.RenderSvg Causeway.SvgMode.FitWidth 96 Causeway.PageMode.Vertical
+∇
     ∇ svg←solarmonthly ts;Causeway;System;data;daydata;dy;md;sp;x;y;⎕USING
       ⍝Plot the month - given by the  second element of ts
       (dy data)←'SOLAR'#.DB.GetMonth ts
@@ -37,7 +128,6 @@
       sp.DrawBarChart y
       svg←sp.RenderSvg Causeway.SvgMode.FitWidth 96 Causeway.PageMode.Vertical
     ∇
-
     ∇ svg←solardaily ts;Causeway;System;back;data;fill;mask;prev;raw;shadow;sp;tk;x;xmax;yd;yy;⎕USING
      
       raw←'SOLAR'##.DB.GetDay ts
@@ -85,6 +175,7 @@
      
      
     ∇
+
     ∇ svg←tempmonthly ts;Causeway;System;avgminmax;data;dmax;dmin;dy;md;pd;sp;x;y;⎕USING
       ⍝Plot the month - given by the  second element of ts
       (dy data)←'OUTTEMP'#.DB.GetMonth ts
@@ -102,7 +193,7 @@
      
       ##.InitCauseway ⍬
       sp←⎕NEW Causeway.SharpPlot
-      sp.Heading←'Outdoor Temperatues ',(ts[2]⊃##.T.ShortMonthNames),' ',,⍕ts[1]
+      sp.Heading←'Outdoor Temperature ',(ts[2]⊃##.T.ShortMonthNames),' ',,⍕ts[1]
       sp←formattemp formatchart sp
       sp.YCaption←'Temp °C'
       sp.XCaption←'Date'
@@ -120,7 +211,6 @@
 
       svg←sp.RenderSvg Causeway.SvgMode.FitWidth 96 Causeway.PageMode.Vertical
     ∇
-
     ∇ svg←tempdaily ts;Causeway;System;algn;avgt;back;ckey;daiy;data;fill;mask;prev;shadow;sp;td;tk;ty;x;xmax;yd;yy;⎕USING
      
       daiy←'OUTTEMP'##.DB.GetDay ts
@@ -168,7 +258,5 @@
      
      
     ∇
-
-    
 
 :EndNamespace

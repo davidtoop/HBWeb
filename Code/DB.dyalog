@@ -81,7 +81,8 @@
       :EndIf
     ∇
 
-    ∇ Put record;timekey;datadir;mix;measures;tablekey;datekey;timestamp;measure;d;kt;dir;tabs;tix;dix;data
+    ∇ Put record;cfrmpow;d;data;datadir;datekey;dir;dix;kt;measure;measures;mix;sofar;tablekey;tabs;timekey;timestamp;tix
+      cfrmpow←{23≠¯1↑⍴⍵:⍵ ⋄ ((20⍴1),0 0 1 1 1)\⍵}
       measure←⊃record
       timestamp←⊃1↓record
       datekey←DateKeyFromTS timestamp
@@ -93,7 +94,7 @@
       measures←⎕FREAD FileTie 2
       mix←measures[;1]⍳⊂measure
       :If mix>≢measures
-          measures⍪←(measure)(''⎕FAPPEND FileTie)
+          measures⍪←(measure)(''⎕FAPPEND FileTie)(¯1↑⍴data)
           measures ⎕FREPLACE FileTie 2
       :EndIf
       datadir←⎕FREAD FileTie,measures[mix;2]
@@ -102,8 +103,15 @@
           datadir⍪←(datekey)(((0,measures[mix;3])⍴0)⎕FAPPEND FileTie)
           datadir ⎕FREPLACE FileTie,measures[mix;2]
       :EndIf
+
+      sofar←⎕FREAD FileTie(datadir[dix;2])
+      :if measure≡'POWER'
+        data←cfrmpow data
+        sofar←cfrmpow sofar
+      :endif
+ 
       data←((1↑⍴data),measures[mix;3])↑data ⍝Conform width
-      data←(⎕FREAD FileTie(datadir[dix;2]))⍪data
+      data←sofar⍪data
       data ⎕FREPLACE FileTie(datadir[dix;2])
       ⎕FUNTIE ⍬
  ⍝         ⎕FHOLD ⍬
