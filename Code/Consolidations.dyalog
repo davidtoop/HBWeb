@@ -8,8 +8,30 @@
         volts←#.Config.OWL.Voltage
         pwr←(volts×0.1)×avgi
         wh←0.25×pwr
-        r←wh
-      ∇       
+        r←0⌈wh
+      ∇
+      
+      ∇ r←days DaysPower dat;daypwr
+        daypwr←days DayPower¨ dat
+        r←↑daypwr
+      ∇
+
+      ∇ r←day DayPower dat;dayts;dp;dypwr;e7pwr;ed;m;pwr;sd;solarcar;ts
+          :if 0∊⍴dat
+            r←⍬
+            →0
+          :endif
+
+          pwr←ToPower dat
+          dayts←10000 100 100⊤day
+          ts←#.T.days dayts(,⍤1)⍉100 100⊤dat[;1]
+          (sd ed)←#.T.Economy7Times dayts
+          m←(ts≥sd)∧ts<ed
+          e7pwr←+/m/pwr[;1]
+          dypwr←+/(~m)/pwr[;1]
+          solarcar←+⌿pwr[;2 3]
+          r←(#.T.days dayts),e7pwr,dypwr,solarcar
+      ∇
     :EndNamespace
 
 :EndNamespace

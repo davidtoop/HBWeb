@@ -20,6 +20,15 @@
     ⍝Day of the week 1=Monday ... 7=Sunday
     WeekDay←{7@(0∘=)7|⌊days ⍵}
 
+
+    Economy7Times←{
+        d←days 3↑⍵
+        ls←{(days ⍵)-(7≠wd)×wd←WeekDay ⍵}
+        (sd ed)←ls¨ (1↑⍵),¨(3 31) (9 30)
+        (d≥sd)∧(d<ed):days ↑(⊂3↑⍵),¨(1 30 0 0) (8 30 0 0)
+        days ↑(⊂3↑⍵),¨(0 30 0 0)(7 30 0 0)
+    }
+
     days←{                                   ⍝ Days since 1899-12-31 (Meeus).
      ⍺←17520902                              ⍝ start of Gregorian calendar.
      yy mm dd h m s ms←7↑⊂[⍳¯1+⍴⍴⍵]⍵         ⍝ ⎕ts-style 7-item date-time.

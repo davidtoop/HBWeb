@@ -25,16 +25,9 @@
         sp.XAxisStyle←Causeway.XAxisStyles.Time
     ∇
 
-
-    Economy7Times←{
-        d←##.T.days 3↑⍵
-        ls←{(##.T.days ⍵)-(7≠wd)×wd←##.T.WeekDay ⍵}
-        (sd ed)←ls¨ (1↑⍵),¨(3 31) (9 30)
-        (d≥sd)∧(d<ed):##.T.days ↑(⊂3↑⍵),¨(2 30 0 0) (9 30 0 0)
-        ##.T.days ↑(⊂3↑⍵),¨(1 30 0 0)(8 30 0 0)
-    }
-
     XAxisTimes←{⍺←⎕TS ⋄ ¯1+#.days(3↑⍺)(,⍤1)⍉100 100⊤⍵}
+    MonthHeading←{⍺,' ',(⍵[2]⊃##.T.ShortMonthNames),' ',,⍕⍵[1]}
+
 
     NADailyMessage←{
       ⍺←''
@@ -68,7 +61,7 @@
         sp←⎕NEW Causeway.SharpPlot
         sp.Heading←'Power Consumption ',##.T.ISODate ts
         sp←formatpower formatchart sp
-        sp.SetXDatumLines ⊂¯1+Economy7Times ts
+        sp.SetXDatumLines ⊂¯1+##.T.Economy7Times ts
         sp.SetDatumLineStyle (System.Drawing.Color.Black) (System.Drawing.LineStyle.Solid) (1)
         sp.SetKeyText ⊂'Total' 'Car' 'Solar'
         sp.LineGraphStyle←Causeway.LineGraphStyles.SurfaceShading
@@ -78,32 +71,36 @@
         sp.DrawLineGraph y3 x
         svg←sp.RenderSvg Causeway.SvgMode.FitWidth 96 Causeway.PageMode.Vertical
     ∇
-    ∇ svg←powermonthly ts;Causeway;System;dat;dy;pwr;sp;tk;x;y1;y2;y3
-        (dy pwr)←'POWER' #.DB.Month ts
+    ∇ svg←powermonthly ts;C;Causeway;System;dat;dy;dys;monthdays;pwr;sp;tk;x
+        C←##.Config.Charts.PowerMonthly
+        (dy pwr)←'POWER' #.DB.GetMonth ts
         :if 0∊⍴pwr
             svg←'POWER' NADailyMessage ts
             →0
         :endif
-    ⍝   dat←#.Consolidations.Power.ToPower ¨pwr
-    ⍝     tk←##.DB.TimeKeys 15
-    ⍝     dat←0⌈(dat⍪0)[pwr[;1]⍳tk;]
-    ⍝     x←ts XAxisTimes tk
-    ⍝     y1←dat[;1]
-    ⍝     y2←dat[;3]
-    ⍝     y3←dat[;2]
-    ⍝     ⍝#.yy←y1←⊂↓[1](dat[;,1]-dat[;,3]),dat[;,3]
-    ⍝     ##.InitCauseway ⍬
-    ⍝     sp←⎕NEW Causeway.SharpPlot
-    ⍝     sp.Heading←'Power Consumption ',##.T.ISODate ts
-    ⍝     sp←formatpower formatchart sp
-    ⍝     ⍝sp.SetXLabels tk
-    ⍝     sp.SetKeyText ⊂'Total' 'Car' 'Solar'
-    ⍝     sp.LineGraphStyle←Causeway.LineGraphStyles.SurfaceShading
-    ⍝     sp.DrawLineGraph y1 x
-    ⍝     sp.DrawLineGraph y2 x
-    ⍝     sp.LineGraphStyle←Causeway.LineGraphStyles.XYPlot
-    ⍝     sp.DrawLineGraph y3 x
-    ⍝     svg←sp.RenderSvg Causeway.SvgMode.FitWidth 96 Causeway.PageMode.Vertical
+
+        ⍝dat is a 3 column matrix [;1] day number, [;2]Economy 7 power, [;3] daytime power
+        dat←dy ##.Consolidations.Power.DaysPower pwr        
+        dys←dat[;1]
+        x←⍳##.T.DaysInMonth ts
+        monthdays←(##.T.days (2↑ts),1)+¯1+x
+        dat←(dat⍪0)[dat[;1]⍳monthdays;]
+
+        ##.InitCauseway ⍬
+        sp←⎕NEW Causeway.SharpPlot
+        sp.Heading←'Power Consumption' MonthHeading ts
+        sp←formatchart sp
+        sp.SetBarWidths C.BarWidth
+        sp.SetKeyText ⊂'E7' 'Std' 'Car' 'Solar'
+ 
+ ⍝ Set the style to be cumulative and draw stacked bars beside them ...
+        sp.DataStyle←Causeway.DataStyles.Relative
+        sp.DrawXBarChart (↓[1]dat[;2 3])(x+-C.BarOffset)
+
+        sp.DataStyle←0
+        sp.DrawXBarChart (dat[;5]) x
+        sp.DrawXBarChart (dat[;4]) (x+C.BarOffset)
+        svg←sp.RenderSvg Causeway.SvgMode.FitWidth 96 Causeway.PageMode.Vertical
 ∇
     ∇ svg←solarmonthly ts;Causeway;System;data;daydata;dy;md;sp;x;y;⎕USING
       ⍝Plot the month - given by the  second element of ts
